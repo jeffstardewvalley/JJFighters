@@ -237,6 +237,10 @@
         <div class="silhouette"><svg viewBox="0 0 54 64" aria-hidden="true"><g stroke="#d8e2ef" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M27 22V43 M27 28L15 38 M27 28L39 37 M27 43L17 57 M27 43L37 57"/><path d="M15 13L18 4L26 8L34 3L40 13L36 20L18 20Z" fill="#d8e2ef"/><path d="M18 16L36 16" stroke="#52627b" stroke-width="2"/></g></svg></div>
         <div class="fighter-name">Reggie Star</div><div class="fighter-meta">Receipt Technique · Randomized arsenal</div><span class="fighter-badge">PLAYABLE</span>
       </button>
+      <button class="fighter-card" data-character="nanami" aria-pressed="false">
+        <div class="silhouette"><svg viewBox="0 0 54 64" aria-hidden="true"><g stroke="#d8c49a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M27 22V43 M27 28L15 38 M27 28L39 37 M27 43L17 57 M27 43L37 57"/><path d="M17 13Q17 4 27 5Q37 4 38 13L35 20L19 20Z" fill="#c6a66d"/><path d="M19 16H35" stroke="#6f5838" stroke-width="2"/></g></svg></div>
+        <div class="fighter-name">Kento Nanami</div><div class="fighter-meta">Ratio Technique · Black Flash · Overtime</div><span class="fighter-badge">PLAYABLE</span>
+      </button>
       <button class="fighter-card random-card" data-character="random" aria-pressed="false">
         <div class="silhouette random-mark">?</div>
         <div class="fighter-name">Random Fighter</div><div class="fighter-meta">Choose instantly from the roster</div><span class="fighter-badge">RANDOM</span>
@@ -244,7 +248,7 @@
     </div>
     <div class="random-status" id="playerRandomStatus" aria-live="polite"></div>
     <div class="match-setup">
-      <div class="setup-field"><label for="enemySelect">Opponent AI</label><select id="enemySelect"><option value="gojo">Gojo Satoru</option><option value="megumi">Megumi Fushiguro</option><option value="ryu">Ryu Ishigori</option><option value="yuji">Yuji Itadori</option><option value="yuta">Yuta Okkotsu</option><option value="reggie">Reggie Star</option><option value="dummy">Training Dummy</option><option value="random">? Random opponent (choose now)</option></select><div class="random-status" id="enemyRandomStatus" aria-live="polite"></div></div>
+      <div class="setup-field"><label for="enemySelect">Opponent AI</label><select id="enemySelect"><option value="gojo">Gojo Satoru</option><option value="megumi">Megumi Fushiguro</option><option value="ryu">Ryu Ishigori</option><option value="yuji">Yuji Itadori</option><option value="yuta">Yuta Okkotsu</option><option value="reggie">Reggie Star</option><option value="nanami">Kento Nanami</option><option value="dummy">Training Dummy</option><option value="random">? Random opponent (choose now)</option></select><div class="random-status" id="enemyRandomStatus" aria-live="polite"></div></div>
       <div class="setup-field"><label for="difficultySelect">AI difficulty</label><select id="difficultySelect"><option value="hard" selected>Hard</option><option value="normal">Normal</option></select></div>
     </div>
     <button id="startBtn" class="primary">ENTER THE ARENA →</button><div style="margin-top:12px"><button class="small-btn" id="pveBack">← Back to mode select</button></div>
@@ -325,7 +329,7 @@
   const SUPABASE_KEY = "sb_publishable_kz0TDrB9-ezUX-D7_XHm1g_Dd3-4Xxu";
   let sbClient=null, roomChannel=null, onlineRole=null, onlineRoomCode="", onlineName="", onlineCharacter="gojo", onlineReady=false, onlinePeer=null, onlineStage="lobby", onlineInputAt=0;
   let pendingRematchRequest=null, pendingGuestRematch=null, activeOnlineRound=0, lastRematchRequestId="", rematchStarting=false;
-  const rosterNames={gojo:"Gojo Satoru",megumi:"Megumi Fushiguro",ryu:"Ryu Ishigori",yuji:"Yuji Itadori",yuta:"Yuta Okkotsu",reggie:"Reggie Star"};
+  const rosterNames={gojo:"Gojo Satoru",megumi:"Megumi Fushiguro",ryu:"Ryu Ishigori",yuji:"Yuji Itadori",yuta:"Yuta Okkotsu",reggie:"Reggie Star",nanami:"Kento Nanami"};
   function onlinePanel(id){["pvpChoices","createPanel","joinPanel","lobbyPanel"].forEach(x=>$(x).classList.toggle("active",x===id));}
   function onlineStatus(t){$("lobbyStatus").textContent=t;}
   function initOnlineUI(){
@@ -570,6 +574,22 @@
         {key:"4",name:"Pure Love Beam",sub:"3 sec startup · pink beam",cd:22}
       ]
     },
+    nanami: {
+      id:"nanami", name:"KENTO NANAMI", hp:500, phase2Multiplier:10,
+      phase1DamageMultiplier:1, phase2DamageMultiplier:1,
+      phase1:[
+        {key:"1",name:"Ratio Apply",sub:"70% chance · 7:3 weak point",cd:3},
+        {key:"2",name:"Blunt Cleaver",sub:"50% Black Flash chance",cd:5},
+        {key:"3",name:"Dash Strike",sub:"Forward dash · contact damage",cd:7},
+        {key:"4",name:"Cleaver Throw",sub:"Throws cleaver · instantly replaces it",cd:8}
+      ],
+      phase2:[
+        {key:"1",name:"Overtime Cleaver",sub:"50% Black Flash chance",cd:4},
+        {key:"2",name:"Ground Slam",sub:"Nearby stun · 3 seconds",cd:12},
+        {key:"3",name:"Interrogation",sub:"Two-stage cinematic combo",cd:18},
+        {key:"4",name:"Sewer Rush",sub:"Drag opponent into wall + debris",cd:20}
+      ]
+    },
     reggie: {
       id:"reggie", name:"REGGIE STAR", hp:500, phase2Multiplier:10,
       phase1DamageMultiplier:1, phase2DamageMultiplier:1,
@@ -593,7 +613,7 @@
   const state = {
     active:false, over:false, lastTime:0, time:0, aiDelay:1, aiReady:false, playerRandomized:false, enemyRandomized:false, onlineMatch:false, onlineHost:false, remoteInput:{left:false,right:false,jump:false}, onlineSnapshotAt:0,
     cameraX:0, zoom:1, shake:0, toastTime:0, toastText:"",
-    projectiles:[], particles:[], zones:[], floating:[], summons:[], beams:[], bursts:[], slashes:[], reggieObjects:[], beamClash:null, keysDown:new Set(),
+    projectiles:[], particles:[], zones:[], floating:[], summons:[], beams:[], bursts:[], slashes:[], reggieObjects:[], nanamiObjects:[], beamClash:null, keysDown:new Set(),
     player:null, enemy:null, lastHud:0, arenaSeed:42, selectedPlayerId:"gojo", selectedEnemyId:"gojo", difficulty:"hard"
   };
   function makeFighter(id, x, facing, isPlayer) {
@@ -605,7 +625,7 @@
       invuln:0, dash:0, charge:0, cooldowns:{}, blueComboLock:0,
       phase2Used:false, domainTimer:0, domainPulse:0, agitoUsed:false, anim:0, moveIntent:0, lastAttack:0,
       heat:0, overheatLock:0, ryuDomainUsed:false, ryuDomainMode:false, ryuDomainTimer:0, ryuRainTimer:0, maxOutputTimer:0, maxOutputRisk:false, maxOutputRiskPending:false, comboTimer:0, comboHits:0, comboTarget:null, fieldTimer:0, fieldTick:0, blackFlashCount:0, specialWindup:0, specialLunge:0, specialUsed:false, sukunaDomainPulse:0, wcsWindup:0, forcedYuji:false, phase2Locked:false,
-      copyData:null,copyLunge:0,copyHit:false,yutaWindup:0,rctTimer:0,skillDisabled:0,beamWindup:null,beamLockTimer:0,yutaDomainActive:false,yutaDomainSharedCD:0,yutaDomainSkills:[],yutaDomainHits:0,yutaDomainHitLock:0,yutaLadderTimer:0,yutaRikaSuppressed:false,reggieSlots:[],reggieSharedCD:0,reggieAwkLock:{},reggieRide:0,reggieRideDir:1,reggieRideCrash:false,reggieBurn:0,reggieSoakedTimer:0,reggieSoakedBy:null
+      copyData:null,copyLunge:0,copyHit:false,yutaWindup:0,rctTimer:0,skillDisabled:0,beamWindup:null,beamLockTimer:0,yutaDomainActive:false,yutaDomainSharedCD:0,yutaDomainSkills:[],yutaDomainHits:0,yutaDomainHitLock:0,yutaLadderTimer:0,yutaRikaSuppressed:false,reggieSlots:[],reggieSharedCD:0,reggieAwkLock:{},reggieRide:0,reggieRideDir:1,reggieRideCrash:false,reggieBurn:0,reggieSoakedTimer:0,reggieSoakedBy:null,nanamiRatio:false,nanamiRatioTimer:0,nanamiRatioTick:5,nanamiAction:null,nanamiCleaverReady:true
     };
   }
   function initReggie(f) {
@@ -684,7 +704,7 @@
   }
   function resetGame() {
     state.active=false; state.over=false; state.time=0; state.aiDelay=1; state.aiReady=false;
-    state.cameraX=0; state.zoom=1; state.shake=0; state.projectiles=[]; state.particles=[]; state.zones=[]; state.floating=[]; state.summons=[]; state.beams=[]; state.slashes=[]; state.reggieObjects=[]; state.beamClash=null;
+    state.cameraX=0; state.zoom=1; state.shake=0; state.projectiles=[]; state.particles=[]; state.zones=[]; state.floating=[]; state.summons=[]; state.beams=[]; state.slashes=[]; state.reggieObjects=[]; state.nanamiObjects=[]; state.beamClash=null;
     // Random selections are rerolled for every fresh match and rematch.
     const rosterIds=Object.keys(CONFIG);
     if(state.playerRandomized) {
@@ -766,7 +786,7 @@
       const ratio=clamp(f.hp/f.maxHp,0,1);
       $(prefix+"Health").style.width=(ratio*100)+"%";
       $(prefix+"HealthText").textContent=Math.ceil(f.hp)+" / "+f.maxHp.toLocaleString()+" HP";
-      $(prefix+"Phase").textContent=f.dummy?"TRAINING MODE":f.id==="yuji"?(f.phase===1?"YUJI · PHASE 1":"SUKUNA · 15F"):f.id==="yuta"?(f.phase===1?"YUTA · PHASE 1":"FULL MANIFESTATION") :f.phase===1?"PHASE 1":"AWAKENED";
+      $(prefix+"Phase").textContent=f.dummy?"TRAINING MODE":f.id==="yuji"?(f.phase===1?"YUJI · PHASE 1":"SUKUNA · 15F"):f.id==="yuta"?(f.phase===1?"YUTA · PHASE 1":"FULL MANIFESTATION"):f.id==="nanami"?(f.phase===1?"NANAMI · GRADE 1":"NANAMI · OVERTIME") :f.phase===1?"PHASE 1":"AWAKENED";
       $(prefix+"Name").textContent=f.name;
     };
     setBar("player",p); setBar("enemy",e);
@@ -898,7 +918,7 @@
       // Mahoraga is a true raid boss: huge health and heavy hits, but slower swings.
       addSummon(f,"mahoraga",{hp:1,damage:120,range:74,speed:210,attackCD:2.7,scale:2.0,life:20,unkillable:true});
     }
-    showToast(f.id==="megumi"?"TEN SHADOWS — MAHORAGA ARRIVES":f.id==="ryu"?"MAXIMUM OUTPUT — PHASE 2":f.id==="yuji"?"SUKUNA — 15 FINGERS AWAKENED":f.id==="yuta"?"FULL MANIFESTATION — RIKA":(f.isPlayer?"AWAKENING — PHASE 2":"RIVAL AWAKENED!"),2.2);
+    showToast(f.id==="megumi"?"TEN SHADOWS — MAHORAGA ARRIVES":f.id==="ryu"?"MAXIMUM OUTPUT — PHASE 2":f.id==="yuji"?"SUKUNA — 15 FINGERS AWAKENED":f.id==="yuta"?"FULL MANIFESTATION — RIKA":f.id==="nanami"?"OVERTIME — KENTO NANAMI":(f.isPlayer?"AWAKENING — PHASE 2":"RIVAL AWAKENED!"),2.2);
     state.shake=13;
     updateHud(true);
   }
@@ -1402,6 +1422,39 @@
       } else return false;
       updateSkillCooldownUI(); updateHud(); return true;
     }
+    if(f.id==="nanami") {
+      const ratioReady=!!f.nanamiRatio;
+      const cdScale=ratioReady?.5:1;
+      if(phase===1&&n===1) {
+        f.cooldowns[n]=setCD; f.nanamiRatio=Math.random()<.7;
+        if(f.nanamiRatio) { addFloat(target.x,target.y-94,"7:3 RATIO","#ff414d",18); particles(target.x,target.y-30,"#ff414d",18,140); showToast("RATIO TECHNIQUE — APPLIED",.9); }
+        else { addFloat(f.x,f.y-65,"RATIO MISSED","#d8c49a",13); showToast("RATIO TECHNIQUE — FAILED",.8); }
+      } else if((phase===1&&n===2)||(phase===2&&n===1)) {
+        f.cooldowns[n]=setCD*cdScale; f.attackTimer=.28;
+        if(target.alive&&target.invuln<=0&&Math.abs(target.x-f.x)<78&&Math.abs(target.y-f.y)<82) {
+          const bf=Math.random()<.5, ratio=!!f.nanamiRatio, amount=(phase===1?85:140)*(bf?2.5:1)*(ratio?3:1);
+          damage(target,amount,f,{dir:f.facing,knockback:bf?380:210,launch:bf?75:0,color:bf?"#17121d":"#d8c49a",big:bf||ratio});
+          if(bf){particles(target.x,target.y+12,"#09070b",38,300);particles(target.x,target.y+12,"#e52b42",28,250);addFloat(target.x,target.y-86,"BLACK FLASH!!","#ff536b",22);}
+          if(ratio){f.nanamiRatio=false;addFloat(target.x,target.y-110,"RATIO CONSUMED","#ff6a73",12);}
+        } else particles(f.x+f.facing*34,f.y-20,"#d8c49a",8,85);
+      } else if(phase===1&&n===3) {
+        f.cooldowns[n]=setCD*cdScale; f.nanamiAction={type:"dashStrike",timer:.34,hit:false,dir:f.facing}; f.vx=f.facing*880; f.dash=.34;
+      } else if(phase===1&&n===4) {
+        f.cooldowns[n]=setCD*cdScale; state.nanamiObjects.push({type:"cleaver",owner:f,target,x:f.x+f.facing*24,y:f.y+20,vx:f.facing*850,life:1.5,hit:false});
+        particles(f.x+f.facing*25,f.y-20,"#d8c49a",12,120); addFloat(f.x,f.y-66,"CLEAVER THROW","#e6d4ac",13);
+      } else if(phase===2&&n===2) {
+        f.cooldowns[n]=setCD*cdScale; f.attackTimer=.35;
+        state.bursts.push({x:f.x,y:f.y+f.h*.72,life:.55,max:.55,r:12,maxR:170,color:"#d8c49a"}); particles(f.x,f.y+35,"#c9b58f",34,230); state.shake=7;
+        if(target.alive&&Math.abs(target.x-f.x)<170&&Math.abs(target.y-f.y)<115){ target.stun=Math.max(target.stun,3); target.vx=0; damage(target,100*(ratioReady?3:1),f,{dir:f.facing,knockback:120,color:"#d8c49a",big:true}); if(ratioReady)f.nanamiRatio=false; addFloat(target.x,target.y-80,"STUN · 3s","#e8d6b2",15); }
+      } else if(phase===2&&n===3) {
+        f.cooldowns[n]=setCD*cdScale;
+        if(Math.abs(target.x-f.x)>145||Math.abs(target.y-f.y)>105){addFloat(f.x,f.y-65,"TOO FAR","#d8c49a",13);return false;}
+        f.nanamiAction={type:"interrogate1",timer:1.5,hit:false,dir:f.facing,ratio:ratioReady}; f.vx=0; f.attackTimer=.7; f.invuln=Math.max(f.invuln,.9); showToast("TELL ME THE NUMBER AND LOCATION OF YOUR ALLIES",1.8);
+      } else if(phase===2&&n===4) {
+        f.cooldowns[n]=setCD*cdScale; f.nanamiAction={type:"sewerRush",timer:1.2,hit:false,stage:0,dir:f.facing,ratio:ratioReady}; f.vx=f.facing*1050; f.dash=1.2;
+      } else return false;
+      updateSkillCooldownUI(); updateHud(); return true;
+    }
     if(f.id==="megumi"&&phase===2&&n===5) {
       f.cooldowns[n]=setCD; f.domainTimer=5; f.domainPulse=.35; f.invuln=5.05; f.vx=0; f.vy=0;
       particles(f.x,f.y-20,"#7d59b7",35,210); showToast("DOMAIN EXPANSION: CHIMERA SHADOW GARDEN",2.1); state.shake=8;
@@ -1509,6 +1562,41 @@
   }
   function updateFighter(f,dt) {
     if(!f.alive) return;
+    if(f.id==="nanami") {
+      if(f.phase===2) {
+        f.nanamiRatioTick=(f.nanamiRatioTick??5)-dt;
+        if(f.nanamiRatioTick<=0) { f.nanamiRatio=true; f.nanamiRatioTick=5; addFloat(enemyOf(f).x,enemyOf(f).y-95,"7:3 RATIO","#ff414d",17); particles(enemyOf(f).x,enemyOf(f).y-25,"#ff414d",16,130); }
+      }
+      if(f.nanamiAction) {
+        const a=f.nanamiAction, t=enemyOf(f); a.timer-=dt;
+        if(a.type==="dashStrike") {
+          f.x=clamp(f.x+f.facing*880*dt,WORLD.left,WORLD.right);
+          if(!a.hit&&t.alive&&t.invuln<=0&&Math.abs(t.x-f.x)<58&&Math.abs(t.y-f.y)<85) { a.hit=true; const r=!!f.nanamiRatio; damage(t,110*(r?3:1),f,{dir:a.dir,knockback:260,color:"#d8c49a"}); if(r)f.nanamiRatio=false; f.nanamiAction=null; f.dash=0; f.vx=0; }
+          else if(a.timer<=0){f.nanamiAction=null;f.dash=0;f.vx=0;}
+        } else if(a.type==="interrogate1") {
+          f.vx=0; f.attackTimer=.22;
+          if(a.timer<=0&&!a.hit) { a.hit=true; const r=!!f.nanamiRatio; damage(t,190*(r?3:1),f,{dir:a.dir,knockback:520,launch:55,color:"#d8c49a",big:true}); if(r)f.nanamiRatio=false; a.type="interrogateDash"; a.timer=.95; f.vx=a.dir*1120; }
+        } else if(a.type==="interrogateDash") {
+          f.x=clamp(f.x+a.dir*1120*dt,WORLD.left,WORLD.right); f.vx=0;
+          if(t.alive&&Math.abs(t.x-f.x)<62&&Math.abs(t.y-f.y)<90) { a.type="interrogateFinal";a.timer=1.5;f.attackTimer=.5; showToast("ON MY WAY HERE, I FOUND SEVERAL ASSISTANT MANAGERS WHO HAD BEEN SLAUGHTERED. WERE YOU THE ONE WHO DID IT?",2.2); }
+          else if(a.timer<=0){f.nanamiAction=null;f.dash=0;}
+        } else if(a.type==="interrogateFinal") {
+          f.vx=0; f.attackTimer=.25;
+          if(a.timer<=0) { const r=!!f.nanamiRatio; damage(t,260*(r?3:1),f,{dir:a.dir,knockback:720,launch:115,color:"#d8c49a",big:true}); if(r)f.nanamiRatio=false; f.nanamiAction=null; f.dash=0; particles(t.x,t.y+10,"#d8c49a",32,260); }
+        } else if(a.type==="sewerRush") {
+          f.x=clamp(f.x+a.dir*1050*dt,WORLD.left,WORLD.right); f.vx=0;
+          if(!a.hit&&t.alive&&Math.abs(t.x-f.x)<62&&Math.abs(t.y-f.y)<95) { a.hit=true; a.stage=1; a.type="sewerDrag"; a.timer=.72; f.vx=0; t.stun=Math.max(t.stun,.9); }
+          else if(a.timer<=0&&!a.hit){f.nanamiAction=null;f.dash=0;}
+        } else if(a.type==="sewerDrag") {
+          const wall=a.dir>0?WORLD.right-34:WORLD.left+34;
+          f.x=clamp(f.x+a.dir*640*dt,WORLD.left,WORLD.right); t.x=clamp(f.x+a.dir*28,WORLD.left+20,WORLD.right-20); t.vx=0;
+          if(a.timer<=0||Math.abs(wall-f.x)<4) { f.x=clamp(wall-a.dir*30,WORLD.left,WORLD.right); t.x=wall; const r=!!f.nanamiRatio; damage(t,210*(r?3:1),f,{dir:a.dir,knockback:100,color:"#d8c49a",big:true}); if(r)f.nanamiRatio=false; state.bursts.push({x:t.x,y:t.y+25,life:.65,max:.65,r:15,maxR:125,color:"#d8c49a"}); particles(t.x,t.y+20,"#c6b9a3",42,300); state.shake=13; for(let k=0;k<11;k++){const spread=(k-5)*17;state.nanamiObjects.push({type:"debris",x:t.x+spread,y:t.y+105+Math.abs(5-k)*5,vx:spread*.8,vy:80+Math.abs(5-k)*13,rot:(k-5)*.18,spin:(k%2?1:-1)*(2+k*.12),size:10+(k%4)*5,life:1.05});} a.type="sewerDebris";a.timer=.55; }
+        } else if(a.type==="sewerDebris") {
+          if(a.timer<=0) { damage(t,140,f,{dir:a.dir,knockback:380,launch:55,color:"#b6a58c",big:true}); particles(t.x,t.y+10,"#b6a58c",35,270); f.nanamiAction=null; f.dash=0; }
+        }
+        if(f.nanamiAction) return;
+      }
+    }
     f.yutaDomainSharedCD=Math.max(0,(f.yutaDomainSharedCD||0)-dt);
     f.reggieNetTimer=Math.max(0,(f.reggieNetTimer||0)-dt);
     if(f.id==="reggie") {
@@ -2076,6 +2164,23 @@
       if(p.life<=0||p.x<WORLD.left-80||p.x>WORLD.right+80) state.projectiles.splice(i,1);
     }
   }
+  function updateNanamiObjects(dt) {
+    for(let i=state.nanamiObjects.length-1;i>=0;i--) {
+      const o=state.nanamiObjects[i]; o.life-=dt;
+      if(o.type==="debris"){o.x+=o.vx*dt;o.y+=o.vy*dt;o.vy-=520*dt;o.rot+=o.spin*dt;if(o.y<WORLD.floor+5){o.y=WORLD.floor+5;o.vy=0;o.vx*=.72;}if(o.life<=0)state.nanamiObjects.splice(i,1);continue;}
+      o.x+=o.vx*dt;
+      if(!o.hit&&o.target?.alive&&Math.abs(o.target.x-o.x)<34&&Math.abs(o.target.y-o.y)<78) {
+        o.hit=true; const r=!!o.owner.nanamiRatio; damage(o.target,115*(r?3:1),o.owner,{dir:Math.sign(o.vx)||1,knockback:300,color:"#d8c49a",big:true}); if(r)o.owner.nanamiRatio=false;
+        particles(o.x,o.y,"#e5d4ad",22,180); addFloat(o.owner.x,o.owner.y-65,"CLEAVER REPLACED","#e6d4ac",12); state.nanamiObjects.splice(i,1); continue;
+      }
+      if(o.life<=0||o.x<WORLD.left-50||o.x>WORLD.right+50) state.nanamiObjects.splice(i,1);
+    }
+  }
+  function drawNanamiObjects() {
+    const z=state.zoom,s=screenSize(),sy=y=>s.h-54*z-(WORLD.floor-y)*z;
+    for(const owner of [state.player,state.enemy]) if(owner?.id==="nanami"&&owner.nanamiRatio){const t=enemyOf(owner),x=(t.x-state.cameraX)*z,y=sy(t.y)-82*z;ctx.save();ctx.fillStyle="#220d12";ctx.fillRect(x-19*z,y-5*z,38*z,8*z);ctx.fillStyle="#f04452";ctx.fillRect(x+3*z,y-5*z,16*z,8*z);ctx.strokeStyle="#ffd0d3";ctx.lineWidth=1*z;ctx.strokeRect(x-19*z,y-5*z,38*z,8*z);ctx.fillStyle="#ff5965";ctx.font=`bold ${10*z}px Arial`;ctx.textAlign="center";ctx.fillText("7:3",x,y-9*z);ctx.restore();}
+    for(const o of state.nanamiObjects){const x=(o.x-state.cameraX)*z,y=sy(o.y);ctx.save();ctx.translate(x,y);if(o.type==="debris"){ctx.rotate(o.rot);ctx.fillStyle="#766b5e";ctx.fillRect(-o.size*z,-o.size*.65*z,o.size*2*z,o.size*1.3*z);ctx.fillStyle="#b6a58c";ctx.fillRect(-o.size*.7*z,-o.size*.35*z,o.size*1.35*z,o.size*.7*z);ctx.strokeStyle="#ded0b8";ctx.lineWidth=1.5*z;ctx.strokeRect(-o.size*z,-o.size*.65*z,o.size*2*z,o.size*1.3*z);ctx.restore();continue;}ctx.rotate(.25*Math.sin(state.time*15));ctx.fillStyle="#b8a27b";ctx.fillRect(-15*z,-3*z,30*z,6*z);ctx.fillStyle="#e3d3ae";ctx.fillRect(-18*z,-5*z,7*z,10*z);ctx.strokeStyle="#f4e7c8";ctx.lineWidth=1.5*z;ctx.strokeRect(-15*z,-3*z,30*z,6*z);ctx.restore();}
+  }
   function updateReggieObjects(dt) {
     for(let i=state.reggieObjects.length-1;i>=0;i--) {
       const o=state.reggieObjects[i];
@@ -2453,10 +2558,11 @@
     // Aura during phase 2.
     if(phase===2) {
       ctx.globalAlpha*=.6;
-      ctx.strokeStyle=f.id==="ryu"?"#ff9a55":f.id==="yuji"?"#d93c55":f.id==="yuta"?"#efbaff":"#b88aff"; ctx.lineWidth=2*z;
+      ctx.strokeStyle=f.id==="ryu"?"#ff9a55":f.id==="yuji"?"#d93c55":f.id==="yuta"?"#efbaff":f.id==="nanami"?"#d8c49a":"#b88aff"; ctx.lineWidth=2*z;
       ctx.beginPath();ctx.ellipse(cx,groundY-23*z,27*z,39*z,0,0,Math.PI*2);ctx.stroke();
       ctx.globalAlpha=1;
     }
+    if((f.id==="nanami"?false:false)){} // ratio marker is drawn by the Nanami owner overlay below
     // Shadow.
     ctx.fillStyle="#070b13aa"; ctx.beginPath();ctx.ellipse(cx,groundY-1*z,20*z,5*z,0,0,Math.PI*2);ctx.fill();
     ctx.strokeStyle=color; ctx.lineWidth=4*z; ctx.lineCap="round"; ctx.lineJoin="round";
@@ -2504,6 +2610,11 @@
       for(const [ox,oy] of spikes) { ctx.beginPath();ctx.moveTo(cx+ox*z,headY+oy*z);ctx.lineTo(cx+(ox+2)*z,headY+(oy-5)*z);ctx.lineTo(cx+(ox+6)*z,headY+(oy+1)*z);ctx.closePath();ctx.fill(); }
       ctx.fillStyle="#9cb8e8";ctx.fillRect(cx-5*z,headY-1*z,3*z,2*z);ctx.fillRect(cx+2*z,headY-1*z,3*z,2*z);
       ctx.strokeStyle="#101522";ctx.lineWidth=5*z;ctx.beginPath();ctx.moveTo(cx-5*z,bodyTop+1*z);ctx.lineTo(cx+5*z,bodyTop+1*z);ctx.stroke();
+    } else if(f.id==="nanami") {
+      ctx.fillStyle="#c6a66d";ctx.beginPath();ctx.moveTo(cx-9*z,headY-4*z);ctx.lineTo(cx-8*z,headY-12*z);ctx.lineTo(cx,headY-15*z);ctx.lineTo(cx+9*z,headY-10*z);ctx.lineTo(cx+8*z,headY-3*z);ctx.closePath();ctx.fill();
+      ctx.fillStyle="#e4c98f";ctx.fillRect(cx-8*z,headY-1*z,16*z,4*z);
+      ctx.strokeStyle="#c6a66d";ctx.lineWidth=5*z;ctx.beginPath();ctx.moveTo(cx-5*z,bodyTop+1*z);ctx.lineTo(cx+5*z,bodyTop+1*z);ctx.stroke();
+      ctx.strokeStyle="#d8c49a";ctx.lineWidth=3*z;ctx.beginPath();ctx.moveTo(cx+dir*10*z,bodyTop+10*z);ctx.lineTo(cx+dir*25*z,bodyTop+23*z);ctx.stroke();
     } else if(f.id==="yuta") {
       ctx.fillStyle="#20202b";
       const spikes=[[-8,-4],[-8,-10],[-3,-8],[0,-14],[4,-9],[8,-12],[10,-4]];
@@ -2825,6 +2936,7 @@
     ctx.translate(shakeX,shakeY);
     drawBackground();
     drawReggieObjects();
+    drawNanamiObjects();
     drawSummons();
     drawProjectiles();
     // Draw far character first.
@@ -2861,6 +2973,7 @@
     updateBeams(dt);
     updateProjectiles(dt);
     updateReggieObjects(dt);
+    updateNanamiObjects(dt);
     updateSummons(dt);
     updateZones(dt);
     updateEffects(dt);
